@@ -2137,7 +2137,7 @@ fn union_with_different_column_names() {
 fn union_values_with_no_alias() {
     let sql = "SELECT 1, 2 UNION ALL SELECT 3, 4";
     let expected = "Union\
-            \n  Projection: Int64(1) AS Int64(1), Int64(2) AS Int64(2)\
+            \n  Projection: Int64(1), Int64(2)\
             \n    EmptyRelation\
             \n  Projection: Int64(3) AS Int64(1), Int64(4) AS Int64(2)\
             \n    EmptyRelation";
@@ -2160,7 +2160,7 @@ fn union_with_incompatible_data_type() {
 fn union_with_different_decimal_data_types() {
     let sql = "SELECT 1 a UNION ALL SELECT 1.1 a";
     let expected = "Union\
-            \n  Projection: CAST(Int64(1) AS Float64) AS a\
+            \n  Projection: CAST(Int64(1) AS a AS Float64)\
             \n    EmptyRelation\
             \n  Projection: Float64(1.1) AS a\
             \n    EmptyRelation";
@@ -2184,7 +2184,7 @@ fn union_with_float_and_string() {
     let expected = "Union\
             \n  Projection: Utf8(\"a\") AS a\
             \n    EmptyRelation\
-            \n  Projection: CAST(Float64(1.1) AS Utf8) AS a\
+            \n  Projection: CAST(Float64(1.1) AS a AS Utf8)\
             \n    EmptyRelation";
     quick_test(sql, expected);
 }
@@ -2205,7 +2205,7 @@ fn sorted_union_with_different_types_and_group_by() {
     let sql = "SELECT a FROM (select 1 a) x GROUP BY 1 UNION ALL (SELECT a FROM (select 1.1 a) x GROUP BY 1) ORDER BY 1";
     let expected = "Sort: x.a ASC NULLS LAST\
         \n  Union\
-        \n    Projection: CAST(x.a AS Float64) AS a\
+        \n    Projection: CAST(x.a AS Float64)\
         \n      Aggregate: groupBy=[[x.a]], aggr=[[]]\
         \n        SubqueryAlias: x\
         \n          Projection: Int64(1) AS a\
@@ -2222,7 +2222,7 @@ fn sorted_union_with_different_types_and_group_by() {
 fn union_with_binary_expr_and_cast() {
     let sql = "SELECT cast(0.0 + a as integer) FROM (select 1 a) x GROUP BY 1 UNION ALL (SELECT 2.1 + a FROM (select 1 a) x GROUP BY 1)";
     let expected = "Union\
-        \n  Projection: CAST(Float64(0) + x.a AS Float64) AS Float64(0) + x.a\
+        \n  Projection: CAST(Float64(0) + x.a AS Float64)\
         \n    Aggregate: groupBy=[[CAST(Float64(0) + x.a AS Int32)]], aggr=[[]]\
         \n      SubqueryAlias: x\
         \n        Projection: Int64(1) AS a\

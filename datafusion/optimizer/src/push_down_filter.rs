@@ -1506,7 +1506,8 @@ mod tests {
         // filter appears below Union
         let expected = "Union\
         \n  TableScan: test, full_filters=[test.a = Int64(1)]\
-        \n  TableScan: test2, full_filters=[test2.a = Int64(1)]";
+        \n  Projection: test2.a AS a, test2.b AS b, test2.c AS c\
+        \n    TableScan: test2, full_filters=[test2.a = Int64(1)]";
         assert_optimized_plan_eq(&plan, expected)
     }
 

@@ -285,7 +285,8 @@ mod tests {
 
         let expected = "Union\
             \n  TableScan: test1\
-            \n  TableScan: test4";
+            \n  Projection: test4.a AS a, test4.b AS b, test4.c AS c\
+            \n    TableScan: test4";
         assert_together_optimized_plan_eq(&plan, expected)
     }
 
@@ -336,8 +337,10 @@ mod tests {
             .build()?;
 
         let expected = "Union\
-            \n  TableScan: test2\
-            \n  TableScan: test3";
+            \n  Projection: test2.t2a AS t1a\
+            \n    TableScan: test2\
+            \n  Projection: test3.t3a AS t1a\
+            \n    TableScan: test3";
         assert_together_optimized_plan_eq(&plan, expected)
     }
 
@@ -396,7 +399,7 @@ mod tests {
             .union(three)?
             .build()?;
 
-        let expected = "Projection: a, b, c\
+        let expected = "Projection: test.a AS a, test.b AS b, test.c AS c\
         \n  TableScan: test";
 
         assert_together_optimized_plan_eq(&plan, expected)

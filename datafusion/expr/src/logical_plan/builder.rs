@@ -51,9 +51,9 @@ use arrow::datatypes::{DataType, Schema, SchemaRef};
 use datafusion_common::config::FormatOptions;
 use datafusion_common::display::ToStringifiedPlan;
 use datafusion_common::{
-    get_target_functional_dependencies, plan_datafusion_err, plan_err, Column, DFField,
-    DFSchema, DFSchemaRef, DataFusionError, OwnedTableReference, Result, ScalarValue,
-    TableReference, ToDFSchema, UnnestOptions,
+    get_target_functional_dependencies, not_impl_err, plan_datafusion_err, plan_err,
+    Column, DFField, DFSchema, DFSchemaRef, DataFusionError, OwnedTableReference, Result,
+    ScalarValue, TableReference, ToDFSchema, UnnestOptions,
 };
 
 /// Default table name for unnamed table
@@ -1343,19 +1343,7 @@ pub fn union(left_plan: LogicalPlan, right_plan: LogicalPlan) -> Result<LogicalP
 
     let inputs = vec![left_plan, right_plan]
         .into_iter()
-        .map(|p| {
-            let plan = coerce_plan_expr_for_schema(&p, &union_schema)?;
-            match plan {
-                LogicalPlan::Projection(Projection { expr, input, .. }) => {
-                    Ok(Arc::new(project_with_column_index(
-                        expr,
-                        input,
-                        Arc::new(union_schema.clone()),
-                    )?))
-                }
-                other_plan => Ok(Arc::new(other_plan)),
-            }
-        })
+        .map(|p| Ok(Arc::new(coerce_plan_expr_for_schema(&p, &union_schema)?)))
         .collect::<Result<Vec<_>>>()?;
 
     if inputs.is_empty() {

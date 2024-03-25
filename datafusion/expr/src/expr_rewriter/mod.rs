@@ -229,6 +229,7 @@ pub fn coerce_plan_expr_for_schema(
     }
 }
 
+/// Coerce expressions to make their types and names consistent with the `dst_schema``.
 fn coerce_exprs_for_schema(
     exprs: Vec<Expr>,
     src_schema: &DFSchema,
@@ -238,17 +239,14 @@ fn coerce_exprs_for_schema(
         .into_iter()
         .enumerate()
         .map(|(idx, expr)| {
-            let new_type = dst_schema.field(idx).data_type();
-            if new_type != &expr.get_type(src_schema)? {
-                match expr {
-                    Expr::Alias(Alias { expr, name, .. }) => {
-                        Ok(expr.cast_to(new_type, src_schema)?.alias(name))
-                    }
-                    _ => expr.cast_to(new_type, src_schema),
-                }
-            } else {
-                Ok(expr.clone())
+            let new_field = dst_schema.field(idx);
+            let mut new_expr =
+                unalias(expr).cast_to(new_field.data_type(), src_schema)?;
+            if new_expr.name_for_alias()? != new_field.qualified_name() {
+                new_expr = new_expr
+                    .alias_qualified(new_field.qualifier().cloned(), new_field.name())
             }
+            Ok(new_expr)
         })
         .collect::<Result<_>>()
 }
