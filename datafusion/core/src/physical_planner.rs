@@ -154,7 +154,7 @@ fn create_physical_name(e: &Expr, is_first_expr: bool) -> Result<String> {
             Ok(format!("{left} {op} {right}"))
         }
         Expr::Case(case) => {
-            let mut name = "CASE ".to_string();
+            let mut name = "PHYSICAL CASE ".to_string();
             if let Some(e) = &case.expr {
                 let _ = write!(name, "{} ", create_physical_name(e, false)?);
             }
